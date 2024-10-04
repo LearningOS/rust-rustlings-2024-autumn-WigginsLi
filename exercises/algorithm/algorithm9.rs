@@ -1,8 +1,7 @@
 /*
-	heap
-	This question requires you to implement a binary heap function
+    heap
+    This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -37,7 +36,14 @@ where
     }
 
     pub fn add(&mut self, value: T) {
-        //TODO
+        self.items.push(value);
+        self.count += 1;
+        let mut idx = self.count;
+        while idx > 1 && (self.comparator)(&self.items[idx], &self.items[self.parent_idx(idx)]) {
+            let parent_idx = self.parent_idx(idx);
+            self.items.swap(idx, parent_idx);
+            idx = parent_idx;
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -57,8 +63,20 @@ where
     }
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
+        match self.children_present(idx) {
+            true => {
+                let left_child_idx = self.left_child_idx(idx);
+                let right_child_idx = self.right_child_idx(idx);
+                if right_child_idx <= self.count
+                    && (self.comparator)(&self.items[right_child_idx], &self.items[left_child_idx])
+                {
+                    right_child_idx
+                } else {
+                    left_child_idx
+                }
+            }
+            false => idx,
+        }
     }
 }
 
@@ -79,13 +97,35 @@ where
 
 impl<T> Iterator for Heap<T>
 where
-    T: Default,
+    T: Default + std::fmt::Debug,
 {
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        //TODO
-		None
+        match self.count {
+            0 => return None,
+            1 => {
+                self.count -= 1;
+                self.items.pop()
+            }
+            _ => {
+                self.items.swap(1, self.count);
+                self.count -= 1;
+                let mut idx = 1;
+
+                while self.children_present(idx) {
+                    let smallest_child_idx = self.smallest_child_idx(idx);
+                    if (self.comparator)(&self.items[smallest_child_idx], &self.items[idx]) {
+                        self.items.swap(smallest_child_idx, idx);
+                        idx = smallest_child_idx;
+                    } else {
+                        break;
+                    }
+                }
+
+                self.items.pop()
+            }
+        }
     }
 }
 
